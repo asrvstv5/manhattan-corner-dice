@@ -1,8 +1,14 @@
-# Manhattan Corner Dice
+# Manhattan Corner Dice 🎲
 
-Roll a dice that picks a **completely random corner of Manhattan** — a random street × avenue intersection — and go visit it.
+**Roll for a completely random corner of Manhattan — and go visit it.**
+
+### ▶️ [Try the live demo](https://asrvstv5.github.io/manhattan-corner-dice/)
 
 No landmarks. No iconic spots. No bias. Every real corner has exactly the same chance of coming up.
+
+[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://asrvstv5.github.io/manhattan-corner-dice/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Single file](https://img.shields.io/badge/single%20file-HTML-blue)](#run-it)
 
 ## How it works
 
@@ -18,7 +24,7 @@ Each roll shows:
 
 ## Use it on your phone
 
-Open `index.html` in your phone browser, then:
+Open the [live demo](https://asrvstv5.github.io/manhattan-corner-dice/) in your phone browser, then:
 
 - **iPhone:** Share → Add to Home Screen
 - **Android:** Menu (⋮) → Add to Home screen / Install app
@@ -39,6 +45,10 @@ python3 -m http.server 8000
 ## Why?
 
 Manhattan is a grid, which makes it one of the few cities you can explore completely at random and always end up *somewhere real*. Most of the city is corners nobody ever deliberately visits. This is a way to go see them.
+
+## Ideas welcome
+
+Want to add another city's grid, track visited corners, or avoid repeats until you've seen them all? Check the [issues](https://github.com/asrvstv5/manhattan-corner-dice/issues) — especially anything labeled `good first issue` — or read [CONTRIBUTING.md](CONTRIBUTING.md). It's one HTML file; if you can edit a list, you can contribute.
 
 ## License
 

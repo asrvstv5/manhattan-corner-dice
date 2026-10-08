@@ -1,0 +1,12 @@
+name: "Idea / new city"
+description: "Suggest a feature, or a new grid city to add"
+title: "Idea: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: What should the dice do, or which city should it cover? For a new city, note its grid/avenue structure if you know it.
+    validations:
+      required: true

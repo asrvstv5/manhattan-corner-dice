@@ -1,0 +1,19 @@
+name: "Bad corner report"
+description: "The dice sent you to a corner that doesn't exist, is misnamed, or isn't reachable"
+title: "Bad corner: "
+labels: ["bug", "good first issue"]
+body:
+  - type: input
+    id: corner
+    attributes:
+      label: Corner the dice gave you
+      placeholder: "e.g. W 115th St & 12th Ave"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's wrong with it?
+      description: Doesn't exist, wrong name, private/inaccessible, something else?
+    validations:
+      required: true
