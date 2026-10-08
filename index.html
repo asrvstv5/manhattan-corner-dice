@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#111512" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Corner Dice" />
+<link rel="icon" href="data:," />
+<title>Manhattan Corner Dice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ECEEEA;
+    --surface:#FFFFFF;
+    --surface-2:#F5F6F3;
+    --ink:#121512;
+    --muted:#626A62;
+    --line:#D9DED8;
+    --yellow:#FFC400;
+    --yellow-ink:#141414;
+    --green:#0A5C36;
+    --green-soft:#E7F1E9;
+    --red:#C0392B;
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:10px;
+    --shadow:0 10px 30px rgba(18,21,18,.09), 0 2px 8px rgba(18,21,18,.07);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0E110E;
+      --surface:#171B17;
+      --surface-2:#1E231E;
+      --ink:#F1F3F0;
+      --muted:#A6AEA6;
+      --line:#2B332B;
+      --green:#35B876;
+      --green-soft:#14261B;
+      --shadow:0 10px 30px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  html{ -webkit-text-size-adjust:100% }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Libre Franklin", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    line-height:1.45;
+  }
+  a{ color:inherit }
+  .wrap{
+    max-width:680px;
+    margin:0 auto;
+    padding:18px 18px 44px;
+  }
+  @media (min-width:720px){ .wrap{ padding:28px 24px 56px } }
+
+  /* intro - not a hero, just context */
+  .intro{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    margin:6px 2px 16px;
+  }
+  .intro-badge{
+    flex:0 0 auto;
+    width:46px;height:46px;
+    display:grid;place-items:center;
+    background:var(--ink);
+    color:var(--yellow);
+    border-radius:12px;
+    margin-top:2px;
+  }
+  .intro-badge svg{ width:26px;height:26px; display:block }
+  .intro p{
+    margin:0;
+    font-size:16px;
+    line-height:1.5;
+    color:var(--ink);
+    max-width:52ch;
+  }
+  .intro p strong{ font-weight:800 }
+  .intro p span{ color:var(--muted) }
+
+  /* stage card */
+  .stage{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .stage-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px 16px;
+    border-bottom:1px solid var(--line);
+    background:var(--surface-2);
+  }
+  .stage-label{
+    font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    display:flex;align-items:center;gap:8px;
+  }
+  .dot{
+    width:8px;height:8px;border-radius:999px;background:#2FA84F;
+    box-shadow:0 0 0 4px color-mix(in srgb, #2FA84F 18%, transparent);
+    flex:0 0 auto;
+  }
+  .stage-count{
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-size:12px;
+    color:var(--muted);
+    white-space:nowrap;
+  }
+  .stage-count b{ color:var(--ink); font-weight:600 }
+
+  .stage-body{
+    padding:22px 18px 18px;
+    text-align:center;
+  }
+  @media (min-width:560px){ .stage-body{ padding:30px 28px 22px } }
+
+  /* dice */
+  .dice-row{
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    margin-bottom:18px;
+  }
+  .die{
+    width:76px;height:76px;
+    background:var(--ink);
+    color:var(--yellow);
+    border-radius:16px;
+    display:grid;
+    place-items:center;
+    position:relative;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 8px 18px rgba(0,0,0,.18);
+  }
+  .die svg{ width:38px;height:38px }
+  .die.small-label{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:10px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+    background:transparent;
+    box-shadow:none;
+    width:auto;height:auto;
+    padding-top:28px;
+  }
+  .dice-row.is-rolling .die{
+    animation: tumble .42s cubic-bezier(.2,.7,.3,1) 1;
+  }
+  .dice-row.is-rolling .die:nth-child(2){ animation-delay:.08s }
+  @keyframes tumble{
+    0%{ transform: rotate(0deg) translateY(0) }
+    25%{ transform: rotate(-7deg) translateY(-4px) }
+    55%{ transform: rotate(6deg) translateY(1px) }
+    100%{ transform: rotate(0deg) translateY(0) }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .dice-row.is-rolling .die{ animation:none }
+    *{ scroll-behavior:auto !important }
+  }
+
+  .corner-kicker{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--green);
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .corner-name{
+    margin:0;
+    font-weight:900;
+    letter-spacing:-.02em;
+    line-height:.95;
+    font-size:42px;
+    text-wrap:balance;
+  }
+  @media (min-width:560px){ .corner-name{ font-size:58px } }
+  .corner-name .amp{
+    color:var(--muted);
+    font-weight:600;
+    font-size:.55em;
+    vertical-align:.18em;
+    padding:0 .08em;
+  }
+  .corner-sub{
+    margin:10px auto 0;
+    color:var(--muted);
+    font-size:15px;
+    max-width:46ch;
+    min-height:22px;
+  }
+  .corner-sub b{ color:var(--ink); font-weight:700 }
+
+  .street-sign{
+    margin:16px auto 0;
+    max-width:520px;
+    background:var(--green);
+    color:white;
+    border-radius:8px;
+    padding:10px 12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    text-align:left;
+  }
+  .street-sign[hidden]{ display:none !important }
+  @media (prefers-color-scheme: dark){
+    .street-sign{ background:#0F3D26; color:#EAF6EE }
+  }
+  .street-sign .sign-main{
+    font-weight:800;
+    letter-spacing:.01em;
+    font-size:14px;
+    line-height:1.2;
+  }
+  .street-sign .sign-sub{
+    font-size:12px;
+    opacity:.85;
+    margin-top:1px;
+  }
+  .street-sign .sign-arrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    border:1px solid rgba(255,255,255,.35);
+    padding:6px 8px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+
+  .actions{
+    display:grid;
+    gap:10px;
+    padding:0 18px 18px;
+  }
+  @media (min-width:560px){
+    .actions{ padding:0 28px 24px; grid-template-columns:1.4fr 1fr 1fr }
+    .actions .btn-roll{ grid-column:1 / -1 }
+  }
+  .btn{
+    appearance:none;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+    border-radius:999px;
+    padding:13px 16px;
+    font:inherit;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    text-decoration:none;
+    min-height:50px;
+  }
+  .btn:active{ transform: translateY(1px) }
+  .btn:focus-visible{ outline:3px solid color-mix(in srgb, var(--yellow) 70%, transparent); outline-offset:2px }
+  .btn-roll{
+    background:var(--yellow);
+    color:var(--yellow-ink);
+    border-color: color-mix(in srgb, var(--yellow) 70%, #000 8%);
+    font-size:17px;
+    font-weight:900;
+    letter-spacing:-.01em;
+    box-shadow:0 8px 18px rgba(255,196,0,.28);
+    min-height:58px;
+  }
+  .btn-roll[disabled]{ opacity:.75; cursor:wait }
+  .btn-secondary{ background:var(--surface-2) }
+  .btn-ghost{ background:transparent }
+  .btn[hidden]{ display:none !important }
+  .btn svg{ width:18px;height:18px; flex:0 0 auto }
+
+  .meta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+    padding:0 18px 18px;
+  }
+  .pill{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12px;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    color:var(--muted);
+    padding:7px 10px;
+    border-radius:999px;
+  }
+  .pill b{ color:var(--ink) }
+
+  /* sections */
+  .grid{
+    display:grid;
+    gap:14px;
+    margin-top:14px;
+  }
+  @media (min-width:640px){ .grid.two{ grid-template-columns:1fr 1fr } }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:16px;
+  }
+  .card h2{
+    margin:0 0 8px;
+    font-size:16px;
+    font-weight:800;
+    letter-spacing:-.01em;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .card h2 .ic{
+    width:28px;height:28px;
+    display:grid;place-items:center;
+    background:var(--green-soft);
+    color:var(--green);
+    border-radius:8px;
+    flex:0 0 auto;
+  }
+  .card h2 .ic svg{ width:16px;height:16px }
+  .card p{ margin:0; color:var(--muted); font-size:14.5px; line-height:1.55 }
+  .card p + p{ margin-top:8px }
+  .card ul{
+    margin:10px 0 0;
+    padding:0;
+    list-style:none;
+    display:grid;
+    gap:8px;
+  }
+  .card li{
+    display:flex;gap:10px;align-items:flex-start;
+    font-size:14.5px; line-height:1.5; color:var(--ink);
+  }
+  .card li span{ color:var(--muted) }
+  .check{
+    width:20px;height:20px;flex:0 0 auto;
+    display:grid;place-items:center;
+    background:var(--ink); color:var(--yellow);
+    border-radius:999px; margin-top:1px;
+    font-size:12px; font-weight:900; line-height:1;
+  }
+
+  /* history */
+  .history-empty{
+    border:1px dashed var(--line);
+    border-radius:var(--radius-md);
+    padding:14px;
+    color:var(--muted);
+    font-size:14.5px;
+    text-align:center;
+    background:var(--surface-2);
+  }
+  .history-list{ list-style:none; margin:10px 0 0; padding:0; display:grid; gap:8px }
+  .history-item{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    border-radius:12px;
+    padding:10px 12px;
+  }
+  .history-item .hi-main{ min-width:0 }
+  .history-item .hi-name{ font-weight:800; font-size:14.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .history-item .hi-sub{ font-size:12.5px; color:var(--muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .history-item a{
+    flex:0 0 auto;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12px;
+    font-weight:600;
+    border:1px solid var(--line);
+    background:var(--surface);
+    padding:7px 9px;
+    border-radius:999px;
+    text-decoration:none;
+  }
+  .history-head{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  .text-btn{
+    appearance:none; border:0; background:transparent; color:var(--muted);
+    font:inherit; font-size:13px; font-weight:700; cursor:pointer; padding:6px 4px;
+  }
+  .text-btn:hover{ color:var(--ink) }
+
+  /* home screen steps */
+  .steps{ counter-reset: step; display:grid; gap:10px; margin-top:10px }
+  .step{
+    display:flex; gap:12px; align-items:flex-start;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:12px;
+  }
+  .step-num{
+    width:26px;height:26px; flex:0 0 auto;
+    display:grid; place-items:center;
+    background:var(--yellow); color:var(--yellow-ink);
+    border-radius:999px; font-weight:900; font-size:13px;
+  }
+  .step p{ margin:0; font-size:14.5px; color:var(--ink); line-height:1.5 }
+  .step p span{ color:var(--muted) }
+
+  details{
+    margin-top:12px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--surface-2);
+    padding:10px 12px;
+  }
+  summary{
+    cursor:pointer;
+    font-weight:800;
+    font-size:14px;
+  }
+  summary:focus-visible{ outline:3px solid color-mix(in srgb, var(--yellow) 70%, transparent); outline-offset:2px; border-radius:6px }
+  .avenue-list{
+    margin:10px 0 2px;
+    padding:0; list-style:none;
+    display:grid; gap:6px;
+    font-size:13.5px; color:var(--muted); line-height:1.45;
+  }
+  .avenue-list b{ color:var(--ink) }
+
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:18px;
+    transform:translateX(-50%) translateY(8px);
+    background:var(--ink);
+    color:var(--bg);
+    padding:10px 14px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:700;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .18s ease, transform .18s ease;
+    max-width: calc(100vw - 32px);
+    text-align:center;
+    z-index:20;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0) }
+
+  .foot{
+    margin-top:14px;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.55;
+    text-align:center;
+    padding:0 6px;
+  }
+  .foot b{ color:var(--ink) }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="intro">
+    <div class="intro-badge" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.2" cy="8.2" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.8" cy="8.2" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="8.2" cy="15.8" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.8" cy="15.8" r="1.3" fill="currentColor" stroke="none"/></svg>
+    </div>
+    <p><strong>One tap, one real Manhattan corner.</strong> <span>No landmarks, no “best of” list, no downtown bias — just a fair pick from every street-and-avenue intersection that actually exists, then go stand on it.</span></p>
+  </div>
+
+  <section class="stage" aria-live="polite">
+    <div class="stage-top">
+      <div class="stage-label"><span class="dot" aria-hidden="true"></span> Your corner</div>
+      <div class="stage-count" id="stageCount"><b>—</b> real corners in the dice</div>
+    </div>
+
+    <div class="stage-body">
+      <div class="dice-row" id="diceRow" aria-hidden="true">
+        <div class="die">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>
+        </div>
+        <div class="die">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-6h6v6"/><path d="M2 20h20"/></svg>
+        </div>
+      </div>
+
+      <div class="corner-kicker" id="cornerKicker">Ready to roll</div>
+      <h1 class="corner-name" id="cornerName">Tap roll<br>to pick a corner</h1>
+      <p class="corner-sub" id="cornerSub">Every avenue only contributes the streets it really crosses — so you’ll never get a corner that isn’t there.</p>
+
+      <div class="street-sign" id="streetSign" hidden>
+        <div>
+          <div class="sign-main" id="signMain">—</div>
+          <div class="sign-sub" id="signSub">Manhattan, New York</div>
+        </div>
+        <div class="sign-arrow">Go →</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-roll" id="rollBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.2" cy="8.2" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.8" cy="8.2" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="8.2" cy="15.8" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.8" cy="15.8" r="1.2" fill="currentColor" stroke="none"/></svg>
+        <span id="rollBtnText">Roll the dice</span>
+      </button>
+      <a class="btn btn-secondary" id="mapsBtn" href="#" target="_blank" rel="noopener" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>
+        Open in Maps
+      </a>
+      <button class="btn btn-ghost" id="copyBtn" type="button" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy corner
+      </button>
+      <button class="btn btn-ghost" id="rerollBtn" type="button" hidden>Roll again</button>
+    </div>
+
+    <div class="meta-row" id="metaRow" aria-label="Dice details">
+      <span class="pill">Uniform pick · <b>every corner equal</b></span>
+      <span class="pill">No weighting by neighborhood</span>
+    </div>
+  </section>
+
+  <div class="grid two">
+    <section class="card" aria-labelledby="fairTitle">
+      <h2 id="fairTitle"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M7 7l-2.5 6a3.2 3.2 0 0 0 5 0L7 7Z"/><path d="M17 7l-2.5 6a3.2 3.2 0 0 0 5 0L17 7Z"/><path d="M8 21h8"/></svg></span>How it stays unbiased</h2>
+      <p>If you rolled a street and an avenue separately, you’d invent corners that don’t exist and over-weight short avenues. This dice does it the other way:</p>
+      <ul>
+        <li><span class="check" aria-hidden="true">✓</span><div><b>Build the full list first.</b> <span>Every real intersection, using each avenue’s actual street range.</span></div></li>
+        <li><span class="check" aria-hidden="true">✓</span><div><b>Pick one corner from the whole list.</b> <span>Each corner gets exactly the same chance — 1 in <b id="fairCount">—</b>.</span></div></li>
+        <li><span class="check" aria-hidden="true">✓</span><div><b>No curation.</b> <span>Famous corners and completely ordinary ones are in the same pool.</span></div></li>
+      </ul>
+      <details>
+        <summary>Which avenues are in the dice?</summary>
+        <ul class="avenue-list" id="avenueList"></ul>
+        <p style="margin-top:10px">Diagonal Broadway and the irregular downtown grid below the numbered streets aren’t counted as avenue corners here — this is the numbered Manhattan grid only, so every result is a clean street-and-avenue corner you can navigate to.</p>
+      </details>
+    </section>
+
+    <section class="card" aria-labelledby="historyTitle">
+      <div class="history-head">
+        <h2 id="historyTitle" style="margin:0"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/></svg></span>Recent rolls</h2>
+        <button class="text-btn" id="clearHistoryBtn" type="button" hidden>Clear</button>
+      </div>
+      <p style="margin-top:8px">This session only — close the page and it starts fresh. Tap any past corner to open it in Maps again.</p>
+      <div class="history-empty" id="historyEmpty">No rolls yet. Your last few corners will show up here.</div>
+      <ul class="history-list" id="historyList"></ul>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:14px" aria-labelledby="homeTitle">
+    <h2 id="homeTitle"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M12 18h.01"/></svg></span>Keep it on your home screen</h2>
+    <p>So you can roll mid-walk without hunting for the page. It opens full-screen like an app.</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><p><b>iPhone (Safari):</b> tap <b>Share</b> <span>→</span> <b>Add to Home Screen</b> <span>→ Add.</span><br><span>On Android (Chrome): tap ⋮ → Add to Home screen / Install app.</span></p></div>
+      <div class="step"><div class="step-num">2</div><p><b>Look for “Corner Dice”</b> <span>on your home screen — same dice, one tap to roll on the street.</span></p></div>
+      <div class="step"><div class="step-num">3</div><p><b>Roll, tap Open in Maps, and walk.</b> <span>That’s the whole ritual.</span></p></div>
+    </div>
+  </section>
+
+  <p class="foot">Built for wandering, not sightseeing. <b>If a corner lands in a tunnel, park interior, or a spot that isn’t safely walkable, roll again</b> — the next one is just as random.</p>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  // Each avenue only contributes the numbered streets it actually crosses.
+  // side: E/W of Fifth Ave (for E/W street prefix), C = on Fifth Ave itself.
+  var AVENUES = [
+    { name: "Avenue A", side: "E", min: 1, max: 14 },
+    { name: "Avenue B", side: "E", min: 2, max: 14 },
+    { name: "Avenue C", side: "E", min: 2, max: 23 },
+    { name: "Avenue D", side: "E", min: 2, max: 13 },
+    { name: "1st Ave", side: "E", min: 1, max: 127 },
+    { name: "2nd Ave", side: "E", min: 1, max: 126 },
+    { name: "3rd Ave", side: "E", min: 9, max: 147 },
+    { name: "Lexington Ave", side: "E", min: 21, max: 131 },
+    { name: "Park Ave", side: "E", min: 17, max: 135 },
+    { name: "Madison Ave", side: "E", min: 23, max: 142 },
+    { name: "5th Ave", side: "C", min: 9, max: 142 },
+    { name: "6th Ave", side: "W", min: 14, max: 59 },
+    { name: "7th Ave", side: "W", min: 14, max: 59 },
+    { name: "8th Ave", side: "W", min: 14, max: 59 },
+    { name: "9th Ave", side: "W", min: 14, max: 59 },
+    { name: "10th Ave", side: "W", min: 14, max: 59 },
+    { name: "11th Ave", side: "W", min: 14, max: 59 },
+    { name: "12th Ave", side: "W", min: 59, max: 72 },
+    { name: "12th Ave", side: "W", min: 125, max: 133 },
+    { name: "Columbus Ave", side: "W", min: 59, max: 110 },
+    { name: "Central Park West", side: "W", min: 59, max: 110 },
+    { name: "West End Ave", side: "W", min: 59, max: 110 },
+    { name: "Amsterdam Ave", side: "W", min: 59, max: 184 },
+    { name: "Adam Clayton Powell Jr. Blvd", side: "W", min: 110, max: 155 },
+    { name: "Lenox Ave", side: "W", min: 110, max: 147 },
+    { name: "Frederick Douglass Blvd", side: "W", min: 110, max: 155 },
+    { name: "York Ave", side: "E", min: 59, max: 92 },
+    { name: "East End Ave", side: "E", min: 79, max: 90 }
+  ];
+
+  function ordinal(n){
+    var mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 13) return n + "th";
+    var mod10 = n % 10;
+    if (mod10 === 1) return n + "st";
+    if (mod10 === 2) return n + "nd";
+    if (mod10 === 3) return n + "rd";
+    return n + "th";
+  }
+
+  function streetLabel(street, side){
+    var base = ordinal(street) + " St";
+    if (side === "E") return "E " + base;
+    if (side === "W") return "W " + base;
+    return base;
+  }
+
+  function neighborhood(street, side){
+    if (street <= 14) return side === "E" ? "East Village / Lower East Side" : "West Village / Chelsea edge";
+    if (street <= 34) return side === "E" ? "Gramercy / Flatiron / Midtown South" : "Chelsea / Midtown South";
+    if (street <= 59) return "Midtown";
+    if (street <= 85) return side === "E" ? "Upper East Side" : "Upper West Side";
+    if (street <= 109) return side === "E" ? "Upper East Side / East Harlem edge" : "Upper West Side / Morningside Heights";
+    if (street <= 135) return side === "E" ? "East Harlem / Harlem" : "Harlem";
+    if (street <= 155) return "Harlem / Hamilton Heights";
+    if (street <= 180) return "Washington Heights";
+    return "Washington Heights / Inwood";
+  }
+
+  // Build the flat list once — this is the whole fairness trick.
+  var CORNERS = [];
+  AVENUES.forEach(function(av){
+    for (var s = av.min; s <= av.max; s++){
+      CORNERS.push({ street: s, avenue: av.name, side: av.side });
+    }
+  });
+
+  // Unbiased uniform integer in [0, n) via rejection sampling (no modulo bias).
+  function uniformInt(n){
+    if (window.crypto && window.crypto.getRandomValues){
+      var max = 4294967296; // 2^32
+      var limit = Math.floor(max / n) * n;
+      var buf = new Uint32Array(1);
+      var x;
+      do {
+        window.crypto.getRandomValues(buf);
+        x = buf[0];
+      } while (x >= limit);
+      return x % n;
+    }
+    return Math.floor(Math.random() * n);
+  }
+
+  function pickCorner(){
+    return CORNERS[uniformInt(CORNERS.length)];
+  }
+
+  function formatCorner(c){
+    return streetLabel(c.street, c.side) + " & " + c.avenue;
+  }
+
+  function mapsUrl(c){
+    var q = formatCorner(c) + ", Manhattan, New York, NY";
+    return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
+  }
+
+  var els = {
+    stageCount: document.getElementById("stageCount"),
+    fairCount: document.getElementById("fairCount"),
+    avenueList: document.getElementById("avenueList"),
+    diceRow: document.getElementById("diceRow"),
+    kicker: document.getElementById("cornerKicker"),
+    name: document.getElementById("cornerName"),
+    sub: document.getElementById("cornerSub"),
+    sign: document.getElementById("streetSign"),
+    signMain: document.getElementById("signMain"),
+    signSub: document.getElementById("signSub"),
+    rollBtn: document.getElementById("rollBtn"),
+    rollBtnText: document.getElementById("rollBtnText"),
+    mapsBtn: document.getElementById("mapsBtn"),
+    copyBtn: document.getElementById("copyBtn"),
+    rerollBtn: document.getElementById("rerollBtn"),
+    historyEmpty: document.getElementById("historyEmpty"),
+    historyList: document.getElementById("historyList"),
+    clearHistoryBtn: document.getElementById("clearHistoryBtn"),
+    toast: document.getElementById("toast")
+  };
+
+  els.stageCount.innerHTML = "<b>" + CORNERS.length.toLocaleString("en-US") + "</b> real corners in the dice";
+  els.fairCount.textContent = CORNERS.length.toLocaleString("en-US");
+
+  els.avenueList.innerHTML = AVENUES.map(function(av){
+    return "<li><b>" + av.name + "</b> — " + streetLabel(av.min, av.side) + " to " + streetLabel(av.max, av.side) + " (" + (av.max - av.min + 1) + " corners)</li>";
+  }).join("");
+
+  var history = [];
+  var current = null;
+  var rolling = false;
+  var toastTimer = null;
+
+  function showToast(msg){
+    els.toast.textContent = msg;
+    els.toast.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ els.toast.classList.remove("show"); }, 2200);
+  }
+
+  function renderCorner(c, isFinal){
+    var label = formatCorner(c);
+    var parts = label.split(" & ");
+    els.name.innerHTML = parts[0] + " <span class=\"amp\">&amp;</span><br>" + parts[1];
+    els.kicker.textContent = isFinal ? "Your corner is" : "Rolling…";
+    var hood = neighborhood(c.street, c.side);
+    els.sub.innerHTML = isFinal
+      ? "Around <b>" + hood + "</b> · Manhattan. Open Maps, go stand on it, look around."
+      : "Shuffling <b>" + CORNERS.length.toLocaleString("en-US") + "</b> real corners…";
+    els.signMain.textContent = label;
+    els.signSub.textContent = hood + " · Manhattan, New York";
+    els.sign.hidden = !isFinal;
+    els.mapsBtn.href = mapsUrl(c);
+    els.mapsBtn.hidden = !isFinal;
+    els.copyBtn.hidden = !isFinal;
+    els.rerollBtn.hidden = !isFinal;
+  }
+
+  function renderHistory(){
+    if (!history.length){
+      els.historyEmpty.hidden = false;
+      els.historyList.innerHTML = "";
+      els.clearHistoryBtn.hidden = true;
+      return;
+    }
+    els.historyEmpty.hidden = true;
+    els.clearHistoryBtn.hidden = false;
+    els.historyList.innerHTML = history.map(function(c, i){
+      var label = formatCorner(c);
+      return "<li class=\"history-item\">"
+        + "<div class=\"hi-main\"><div class=\"hi-name\">" + label + "</div>"
+        + "<div class=\"hi-sub\">" + neighborhood(c.street, c.side) + (i === 0 ? " · latest" : "") + "</div></div>"
+        + "<a href=\"" + mapsUrl(c) + "\" target=\"_blank\" rel=\"noopener\">Maps</a></li>";
+    }).join("");
+  }
+
+  function doRoll(){
+    if (rolling) return;
+    rolling = true;
+    var finalCorner = pickCorner();
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    els.rollBtn.disabled = true;
+    els.rollBtnText.textContent = "Rolling…";
+    els.diceRow.classList.add("is-rolling");
+    els.mapsBtn.hidden = true;
+    els.copyBtn.hidden = true;
+    els.rerollBtn.hidden = true;
+    els.sign.hidden = true;
+
+    if (reduceMotion){
+      finish(finalCorner);
+      return;
+    }
+
+    var finished = false;
+    var timer = setInterval(function(){
+      renderCorner(pickCorner(), false);
+    }, 60);
+    function finishOnce(){
+      if (finished) return;
+      finished = true;
+      clearInterval(timer);
+      finish(finalCorner);
+    }
+    // Primary finish path: a single timeout. Fallback: dice CSS animation end.
+    setTimeout(finishOnce, 420);
+    els.diceRow.addEventListener("animationend", function onEnd(){
+      els.diceRow.removeEventListener("animationend", onEnd);
+      finishOnce();
+    });
+
+    function finish(c){
+      rolling = false;
+      current = c;
+      els.diceRow.classList.remove("is-rolling");
+      els.rollBtn.disabled = false;
+      els.rollBtnText.textContent = "Roll the dice";
+      renderCorner(c, true);
+      history.unshift(c);
+      if (history.length > 8) history.length = 8;
+      renderHistory();
+    }
+  }
+
+  els.rollBtn.addEventListener("click", doRoll);
+  els.rerollBtn.addEventListener("click", doRoll);
+
+  els.copyBtn.addEventListener("click", function(){
+    if (!current) return;
+    var text = formatCorner(current) + ", Manhattan, New York";
+    function done(){ showToast("Copied: " + text); }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ showToast(text); });
+    } else {
+      showToast(text);
+    }
+  });
+
+  els.clearHistoryBtn.addEventListener("click", function(){
+    history = [];
+    renderHistory();
+    showToast("History cleared for this session");
+  });
+
+  renderHistory();
+})();
+</script>
+</body>
+</html>
